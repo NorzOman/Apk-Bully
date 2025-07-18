@@ -13,21 +13,26 @@
 
 ---
 
-##  Quick Start
+## 🚀 Usage Overview
 
-You can use Apk-Bully in **two ways**:  
-**1. Full Dockerized Workflow (Recommended)**  
-**2. Native Build & Run (No Docker)**
+You can use Apk-Bully in **two main ways**:
+
+- **A. Dockerized (Recommended):**  
+  - Use the provided helper script for easiest usage  
+  - Or run the Docker container manually
+
+- **B. Native (No Docker):**  
+  - Build and run the scanner directly on your system
 
 ---
 
-## ( Option - 1 ). Full Dockerized Workflow (Recommended)
+## 🐳 A. Dockerized Workflow (Recommended)
 
-### Prerequisites
+### 1. Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) installed
 
-### Build the Docker Image
+### 2. Build the Docker Image
 
 ```bash
 git clone https://github.com/NorzOman/Apk-Bully.git
@@ -35,7 +40,11 @@ cd Apk-Bully
 docker build -t apkbully .
 ```
 
-### 1. Run with the Helper Script
+### 3. Run the Scanner
+
+You have **two options** for running the scanner in Docker:
+
+#### Option 1: Using the Helper Script
 
 This is the easiest way. The script handles all Docker mounting and arguments.
 
@@ -47,7 +56,7 @@ chmod +x apkbully-run.sh
 - Your APK is mounted into the container.
 - Results are saved as `output/results.json` on your host.
 
-### 2. Run Docker Manually
+#### Option 2: Using Raw Docker Command
 
 If you want more control:
 
@@ -65,21 +74,21 @@ docker run --rm \
 
 ---
 
-## ( Option - 2 ) Native Build & Run (No Docker)
+## 🖥️ B. Native Build & Run (No Docker)
 
-### Prerequisites
+### 1. Prerequisites
 
 - Linux
 - `g++` with C++20 support
 - Java Runtime (for JADX)
 
-### Build the Scanner
+### 2. Build the Scanner
 
 ```bash
 g++ -std=c++20 -O2 -o apkbully-exec apkbully-exec.cpp
 ```
 
-### Install JADX
+### 3. Install JADX
 
 ```bash
 wget https://github.com/skylot/jadx/releases/download/v1.5.2/jadx-1.5.2.zip
@@ -87,7 +96,7 @@ unzip jadx-1.5.2.zip -d jadx
 sudo ln -sf $(pwd)/jadx/jadx-1.5.2/bin/jadx /usr/local/bin/jadx
 ```
 
-### Run the Scanner
+### 4. Run the Scanner
 
 ```bash
 mkdir -p output
@@ -102,17 +111,5 @@ mkdir -p output
 
 - Results are saved as a JSON file in the `output/` directory.
 - Review the output for any detected secrets or sensitive data.
-
----
-
-## 🤝 Contributing
-
-Pull requests and issues are welcome!
-
----
-
-## 📄 License
-
-No driver's license needed for the code
 
 ---
