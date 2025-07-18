@@ -85,6 +85,7 @@ docker run --rm \
 ### 2. Build the Scanner
 
 ```bash
+cd src
 g++ -std=c++20 -O2 -o apkbully-exec apkbully-exec.cpp
 ```
 
@@ -100,7 +101,7 @@ sudo ln -sf $(pwd)/jadx/jadx-1.5.2/bin/jadx /usr/local/bin/jadx
 
 ```bash
 mkdir -p output
-./apkbully-exec --src /absolute/path/to/your.apk --out output/results.json
+./src/apkbully-exec --src /absolute/path/to/your.apk --out output/results.json
 ```
 
 - The output will be saved as `output/results.json`.

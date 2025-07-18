@@ -18,14 +18,14 @@ RUN echo "[1/6] Updating apt and installing dependencies..." && \
 WORKDIR /app
 
 RUN echo "[2/6] Copying project files..."
-COPY apkbully-exec.cpp .
-COPY apkbully-patterns.txt .
+COPY src/apkbully-exec.cpp .
+COPY src/apkbully-patterns.txt .
 
 RUN echo "[3/6] Building C++ executable with C++20..." && \
     g++ -std=c++20 -O2 -o apkbully-exec apkbully-exec.cpp
 
-RUN echo "[4/6] Downloading and installing jadx 1.5.2..." && \
-    wget -q https://github.com/skylot/jadx/releases/download/v1.5.2/jadx-1.5.2.zip && \
+RUN echo "[4/6] Downloading and installing jadx 1.5.2 this may take a while..." && \
+    wget https://github.com/skylot/jadx/releases/download/v1.5.2/jadx-1.5.2.zip && \
     mkdir /opt/jadx-1.5.2 && \
     unzip jadx-1.5.2.zip -d /opt/jadx-1.5.2 && \
     rm jadx-1.5.2.zip && \

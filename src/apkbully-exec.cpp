@@ -88,6 +88,8 @@ int main(int argc , char * argv[]){
         return 0;
     }
 
+    std::cout << "[ debug ] JADX found at: " << jadx_check << std::endl;
+
     // Now firstly decompile the apk
     std::cout << "\n\n[ debug ] Now setting up in .." ;
     loader();
@@ -211,8 +213,9 @@ void setup(std::string apk_path){
 	std::string decompile_command = jadx_path + " -d sandbox " + apk_path;
 	std::cout << "[ debug ] decompiling the apk using the jadx using the command : " << decompile_command  << "\n";
 
-	run(decompile_command);
-	std::cout << "[ debug ] assuming the apk was successfully decompiled [limitation : cant check status if success or error without signal matching]" << "\n";
+	std::string output = run(decompile_command);
+    std::cout << "[ debug ] Decompilation output: " << output << "\n" << std::endl;
+    std::cout << "[ debug ] assuming decompilation was successful if u see error in above output then ctrl+c" << std::endl;
 }
 
 
