@@ -1,0 +1,203 @@
+
+=====================================================================================
+APK Secret Scanner Patterns
+This file contains regex patterns to find secrets and security vulnerabilities
+in decompiled Android APK source code (Java/Kotlin, XML, etc.).
+It includes generic secret patterns and is enhanced with patterns
+specifically tailored for the Android ecosystem.
+Format: regex::Description of the finding
+=====================================================================================
+=====================================================================================
+Part 1: Private Keys & Certificates (Content-based)
+=====================================================================================
+
+-----BEGIN ((EC|PGP|DSA|RSA|OPENSSH) )?PRIVATE KEY( BLOCK)?-----::Generic or Specific Private Key Block
+-----BEGIN CERTIFICATE-----::X.509 Certificate (Potentially for cert pinning)
+PuTTY-User-Key-File-2::PuTTYgen Private Key File Content
+(ssh|ec)dsa host key::OpenSSH Host Key
+
+=====================================================================================
+Part 2: Cloud Provider Credentials (Often used for app backends)
+=====================================================================================
+--- Amazon Web Services (AWS) ---
+
+(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}::AWS Access Key ID
+[aA][wW]sS?([sS][eE][cC][rR][eE][tT]|[tT][oO][kK][eE][nN]|[kK][eE][yY])['"]?\s*[:=]\s*['"]?[A-Za-z0-9/+]{40}['"]?::AWS Secret Access Key
+amzn.mws.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}::Amazon MWS Auth Token
+[a-zA-Z0-9-]+.dkr.ecr.[a-zA-Z0-9-]+.amazonaws.com::AWS ECR Registry Host
+s3.amazonaws.com/[a-zA-Z0-9.-]+::S3 Bucket URL
+[a-zA-Z0-9._-]+.s3-website.--\w+-\d+.amazonaws.com::S3 Website Endpoint
+
+--- Google Cloud Platform (GCP) & Firebase ---
+
+AIza[0-9A-Za-z\-]{35}::Google API Key (Generic, often for Maps, FCM, or other Google services)
+[0-9]+-[0-9a-z]{32}.apps.googleusercontent.com::Google OAuth Client ID
+"private_key_id":\s*"[0-9a-fA-F]{40}"::GCP Service Account Private Key ID
+"private_key":\s*"-----BEGIN PRIVATE KEY-----\n[a-zA-Z0-9=\n/+]+-----END PRIVATE KEY-----\n"::GCP Service Account Private Key
+[a-z0-9-]+.firebaseio.com::Firebase Realtime Database URL
+AAAA[A-Za-z0-9_-]{7}:APA91b[A-Za-z0-9_-]{140}::Firebase Cloud Messaging (FCM) Legacy Server Key
+
+--- Microsoft Azure ---
+
+[aA][zZ][uU][rR]eE?([sS][eE][cC][rR][eE][tT]|[tT][oO][kK][eE][yY]|[pP][aA][sS][sS][wW][oO][rR][dD])['"]?\s*[:=]\s*['"]?[0-9a-zA-Z/+-]{80,90}['"]?::Azure Secret Key
+[cC][lL][iI][eE][nN][tT]?[-]?[sS][eE][cC][rR][eE][tT].{0,10}['"]?[0-9a-zA-Z-_]{30,60}['"]?::Azure AD/OAuth Client Secret
+
+--- Other Cloud/Infra Providers ---
+
+dop_v1_[a-f0-9]{64}::DigitalOcean Personal Access Token v2
+[hH][eE][rR][oO][kK]uU?[kK][eE][yY]['"]?\s*[:=]\s*['"]?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}['"]?::Heroku API Key
+LTAI[a-zA-Z0-9_]{20,25}::Alibaba Cloud (Aliyun) Access Key ID
+AKID[a-zA-Z0-9]{32}::Tencent Cloud SecretId
+ocid1.credential.oc1.[a-zA-Z0-9]{32,60}::Oracle Cloud (OCI) API Key
+ocid1.authsecret.oc1.[a-zA-Z0-9]{32,60}::Oracle Cloud (OCI) Auth Token
+
+=====================================================================================
+Part 3: Database & Generic Connection Strings
+=====================================================================================
+
+mongodb(?:\+srv)?://(?:[a-zA-Z0-9.-]+:[^@\s]+@)?[a-zA-Z0-9.-]+:?\d*::Mongodb url
+postgres(ql)?://[a-zA-Z0-9.~%-]+:[^@\s]+@[^:\s]+(:[0-9]+)?/[a-zA-Z0-9]+::postgress url
+mysql://[a-zA-Z0-9.~%-]+:[^@\s]+@[^:\s]+(:[0-9]+)?/[a-zA-Z0-9]+::MySQL connection string
+redis://[^@\s]*:[^@\s]+@[^:\s]+:[0-9]+::Redis Connection String (with password)
+amqp(s)?://[^:\s]+:[^@\s]+@[^:\s]+::AMQP Connection String
+jdbc:(mysql|postgresql|oracle|sqlserver|mariadb|h2|sqlite):(//|:).+::JDBC Connection String
+https?://[a-zA-Z0-9._~%-]+:[^@\s]+@[a-zA-Z0-9.-]+::HTTP/s url with identifiers
+
+=====================================================================================
+Part 4: API & Service Tokens (for 3rd Party SDKs)
+=====================================================================================
+--- Version Control (Less common in APKs, but possible) ---
+
+ghp_[a-zA-Z0-9]{36}::GitHub Personal Access Token
+github_pat_[a-zA-Z0-9_]{82}::GitHub Fine-Grained Personal Access Token
+glpat-[a-zA-Z0-9-_]{20}::GitLab Personal Access Token
+
+--- Payment & Financial (Stripe, Square, etc.) ---
+
+sk_live_[0-9a-zA-Z]{24}::Stripe Live Secret Key
+rk_live_[0-9a-zA-Z]{24}::Stripe Live Restricted Key
+pk_live_[0-9a-zA-Z]{24}::Stripe Live Publishable Key (less critical, but still info)
+sk_test_[0-9a-zA-Z]{24}::Stripe Test Secret Key
+rk_test_[0-9a-zA-Z]{24}::Stripe Test Restricted Key
+pk_test_[0-9a-zA-Z]{24}::Stripe Test Publishable Key
+sq0atp-[0-9A-Za-z-]{22,}::Square Access Token
+sq0csp-[0-9A-Za-z-]{43}::Square OAuth Secret
+([pP][aA][yY][pP][aA][lL]|[bB][rR][aA][iI][nN][tT][rR][eE][eE]).([kK][eE][yY]|[sS][eE][cC][rR][eE][tT]|[tT][oO][kK][eE][nN])['"]?\s[:=]\s*['"]?E[CLV][a-zA-Z0-9-]{30,50}['"]?::PayPal/Braintree Live Credential
+shpss[a-fA-F0-9]{32}::Shopify Shared Secret
+fk-live-[a-zA-Z0-9]{30,}::Flutterwave Live Key
+pk_prod_XXXXXXXXXXXXX::Razorpay Production Key ID (X is alphanumeric)
+rzp_live_[a-zA-Z0-9]{14}::Razorpay Live Key Secret
+
+--- Communication (Slack, Twilio, SendGrid, etc.) ---
+
+xox[baprs]-[0-9]{12}-[0-9]{12,13}-[a-zA-Z0-9]{24,25}::Slack Token
+https://hooks\.slack\.com/services/T[a-zA-Z0-9_]{8,}/B[a-zA-Z0-9_]{8,}/[a-zA-Z0-9_]{24}::Slack Webhook URL
+AC[a-f0-9]{32}::Twilio Account SID
+SK[a-f0-9]{32}::Twilio API Key SID
+SG.[a-zA-Z0-9.-]{66}::SendGrid API Key v3
+[a-f0-9]{32}-us[0-9]{1,2}::Mailchimp API Key
+[mM][aA][iI][lL][gG][uU]nN?[kK][eE][yY]['"]?\s*[:=]\s*['"]?key-[a-f0-9]{32}['"]?::Mailgun API Key
+[0-9]{8,10}:AA[0-9A-Za-z-]{33,35}::Telegram Bot Token
+[M-Z][A-Za-z\d]{23}.[\w-]{6}.[\w-]{27,38}::Discord Bot/User Token
+UA-[0-9]{4,}-[0-9]{1}::Google Analytics Tracking ID
+G-([A-Z0-9]){10}::Google Analytics 4 Measurement ID
+sentry.io/(?:organizations|api)/[^/]+/(?:projects|api-keys)/[^/]+/(?:keys|store)/([a-f0-9]{32})::Sentry DSN Key (old format, part of URL)
+https://[a-f0-9]{32}@sentry.io/[0-9]+::Sentry DSN (full URL)
+[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}::Generic UUID (often for OneSignal App ID or similar)
+([oO][nN][eE][sS][iI][gG][nN][aA][lL].([aA][pP][pP]_[iI][dD]|[kK][eE][yY]))['"]?\s[:=]\s*['"]?[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}['"]?::OneSignal App ID (keyword context)
+SG_([a-zA-Z0-9]{32})API_KEY::Segment.io Write Key (older format)
+sk[a-zA-Z0-9]{32}::Segment.io Write Key (newer format)
+pk_live_[a-zA-Z0-9]{14}::Paddle Live Publishable Key
+pk_test_[a-zA-Z0-9]{14}::Paddle Test Publishable Key
+cus_([a-zA-Z0-9]{20,})::Stripe Customer ID
+
+--- Social Media & Content ---
+
+EAACEdEose0cBA[a-zA-Z0-9]{150,250}::Facebook Access Token
+[tT][wW][iI][tT][tT][eE]rR?[kK][eE][yY]['"]?\s*[:=]\s*['"]?[a-zA-Z0-9]{20,28}['"]?::Twitter API Key
+[tT][wW][iI][tT][tT][eE]rR?[sS][eE][cC][rR][eE][tT]['"]?\s*[:=]\s*['"]?[a-zA-Z0-9]{45,55}['"]?::Twitter API Secret
+AA[A-Za-z0-9_-]{140}::Google reCAPTCHA Secret Key (v2/v3 server key)
+6L[0-9A-Za-z_-]{39}::Google reCAPTCHA Site Key (client key)
+
+=====================================================================================
+Part 5: LLM (Large Language Model) & AI Service Tokens
+=====================================================================================
+
+sk-[a-zA-Z0-9]{32}::OpenAI API Key (ChatGPT, GPT-3, DALL-E)
+org-[a-zA-Z0-9]{24}::OpenAI Organization ID
+sk-ant-api03-[a-zA-Z0-9-]{50,100}::Anthropic API Key (Claude)
+hf[a-zA-Z0-9]{30,70}::Hugging Face API Key
+(gsk|gemini|vertexai)-[a-zA-Z0-9_]{30,80}::Google Generative AI/Gemini API Key (often starts with 'gsk' or 'gemini')
+(AI_PLATFORM_API_KEY|API_KEY_AI_PLATFORM)\s*=\s*'"['"]::Google AI Platform API Key (contextual)
+(co_)?k-[a-zA-Z0-9]{20}::Cohere API Key
+key_prod_[a-zA-Z0-9]{32}::OpenRouter Production API Key
+key_test_[a-zA-Z0-9]{32}::OpenRouter Test API Key
+AZURE_OPENAI_API_KEY\s*=\s*'"['"]::Azure OpenAI Service API Key (contextual)
+"api_type":\s*"azure"(:?,|})[^}]"api_key":\s"([a-zA-Z0-9]{32})"::Azure OpenAI Service API Key (JSON context)
+
+=====================================================================================
+Part 6: Generic & Keyword-based Secrets
+=====================================================================================
+--- High Entropy & Generic Formats ---
+
+ey[A-Za-z0-9-=]+.ey[A-Za-z0-9-=]+.?[A-Za-z0-9-.+/=]*::JSON Web Token (JWT)
+0x[a-fA-F0-9]{64}::Ethereum/Generic Private Key (hex)
+[a-zA-Z0-9](key|token|secret|password|passwd|pwd|api_key|secret_key|auth_token|access_token|client_secret|client_id)[a-zA-Z0-9_]\s*[:=]\s*'"['"]::Generic High Entropy Secret (improved to ensure quotes are optional for the value)
+Authorization:\s*Basic\s+[a-zA-Z0-9=+/]+::HTTP Basic Authentication Header
+[Bb]earer\s+[a-zA-Z0-9._/+=-]+::Bearer Token
+
+--- Generic Keyword-based Detection (Very effective in Java/Kotlin code and XML strings) ---
+
+([cC][lL][iI][eE][nN][tT][sS][eE][cC][rR][eE][tT]|[cC][lL][iI][eE][nN][tT]-[sS][eE][cC][rR][eE][tT])\s*[:=]\s*['"]?[a-zA-Z0-9.~-]{30,60}['"]?::OAuth Client Secret (keyword)
+[aA][pP][iI][-]?[kK][eE][yY]\s*[:=]\s*['"]?[a-zA-Z0-9.-]{20,100}['"]?::Generic API Key (keyword)
+[sS][eE][cC][rR][eE][tT][-]?[kK][eE][yY]\s*[:=]\s*['"]?[a-zA-Z0-9.-]{20,100}['"]?::Generic Secret Key (keyword)
+[aA][uU][tT][hH][-]?[tT][oO][kK][eE][nN]\s*[:=]\s*['"]?[a-zA-Z0-9.-]{20,100}['"]?::Generic Auth Token (keyword)
+[cC][rR][yY][pP][tT][oO][-]?[kK][eE][yY]\s*[:=]\s*['"]?[a-zA-Z0-9.-]{16,100}['"]?::Generic Crypto Key (keyword)
+[eE][nN][cC][rR][yY][pP][tT][iI][oO][nN][-]?[kK][eE][yY]\s*[:=]\s*['"]?[a-zA-Z0-9.-]{16,100}['"]?::Generic Encryption Key (keyword)
+([pP][aA][sS][sS][wW][oO][rR][dD]|[pP][aA][sS][sS][wW][dD]|[pP][wW][dD])\s*[:=]\s*['"]?[a-zA-Z0-9._\-!@#$%^&*]{8,}['"]?::Generic Password (keyword)
+
+=====================================================================================
+Part 7: Android-Specific Patterns
+=====================================================================================
+--- Hardcoded Secrets in XML files (AndroidManifest.xml, res/values/strings.xml) ---
+
+<string name="[a-zA-Z0-9_]*?(key|secret|token|password|apikey|auth|client_id|client_secret)[a-zA-Z0-9_]*?">([^<]+)</string>::Hardcoded secret in strings.xml
+<meta-data android:name="[^"](key|secret|token|password|apikey|auth|client_id|client_secret)[^"]" android:value="([^"]+)"/>::Hardcoded secret in AndroidManifest.xml meta-data
+android:scheme="([^"]+)"\s+android:host="([^"]+)"\s+android:pathPrefix="([^"]+)"\s*/>::Deep Link URI scheme exposed (potential for hijacking)
+(android:host|android:path|android:scheme)\s*=\s*"[^"](api|dev|stag|uat|test|internal)[^"]"::Potentially sensitive endpoint in Intent Filter (dev/staging URLs)
+<provider\s+android:name="([^"]+)"[^>]*android:exported="true"::Content Provider exported (potential for data leakage if not secured)
+
+--- Insecure Network Configuration & Permissions ---
+
+android:usesCleartextTraffic\s*=\s*"true"::Insecure Network Config: Cleartext traffic is enabled for the entire app
+<domain-config\s+cleartextTrafficPermitted\s*=\s*"true">::Insecure Network Config: Cleartext traffic is enabled for a specific domain
+<certificates\s+src\s*=\s*"user"\s*/>::Insecure Network Config: App trusts user-installed certificates (vulnerable to MiTM)
+<certificates\s+src\s*=\s*"system"\s*/>::Insecure Network Config: App trusts all system-installed certificates (could be vulnerable to compromised roots)
+android.permission.READ_LOGS::Potentially dangerous permission: READ_LOGS (app can read logs of other apps)
+android.permission.WRITE_EXTERNAL_STORAGE::Potentially dangerous permission: WRITE_EXTERNAL_STORAGE (especially on older Android versions)
+android.permission.MANAGE_EXTERNAL_STORAGE::Potentially dangerous permission: MANAGE_EXTERNAL_STORAGE
+android:debuggable\s*=\s*"true"::Application is debuggable, allowing for easier reverse engineering and tampering
+android:allowBackup="true"::Application allows backup, potentially exposing sensitive data via ADB backup
+android:protectionLevel="signature"::Custom permissions with 'signature' level (good, but context needed)
+android:protectionLevel="normal"::Custom permissions with 'normal' level (can be abused by other apps)
+
+--- Hardcoded Secrets in Java/Kotlin Code (String Literals, Method Calls) ---
+
+new\s+SecretKeySpec\(\([^,]+\),::Hardcoded key in cryptographic function (SecretKeySpec)
+keyStore.load([^,]+,\s*"([^"]+)".toCharArray())::Hardcoded Keystore password
+\.(setClientSecret|setApiKey|setAccessToken|setAuthToken|setCredentials|initialize|configure)\s*\(\s*(['"])([^'"]+)\3\s*\)::Hardcoded credential in SDK method call (more generic for common setters)
+(https?|ftp|smb)://[a-zA-Z0-9.-]+:[0-9]+.@(dev|stag|uat|test|internal).::Hardcoded URL to a staging/dev environment with credentials
+"':([0-9]{1,5})["']::Hardcoded IP address or hostname with port (e.g., database endpoint)
+System.loadLibrary\s(\s*"'["']\s*)::Loads native library (potential for hidden secrets in JNI code)
+new\s+(AES|DES|RSA)Cipher()::Direct instantiation of cryptographic ciphers (may indicate hardcoded keys/IVs)
+
+--- Firebase Configuration (google-services.json) ---
+
+"mobilesdk_app_id":\s*"([^"]+)"::Firebase Mobile SDK App ID
+"api_key":\s*(\s*\{\s*"current_key":\s*"([^"]+)"\s*\}\s*)::Firebase Current API Key
+"project_number":\s*"([^"]+)"::Firebase Project Number
+"storage_bucket":\s*"([^"]+)"::Firebase Storage Bucket
+"oauth_client":\s*[[^\]]"client_id":\s"([^"]+)"[^\]]*]::Firebase OAuth Client ID
+
+-- Genric --
+([pP][aA][sS][sS][wW][oO][rR][dD]|[pP][aA][sS][sS][wW][dD]|[pP][wW][dD])\s*[:=]\s*['\"]?[a-zA-Z0-9\._\-\!\@\#\$\%\^\&\*]{8,}['\"]?::Generic Password (keyword)
