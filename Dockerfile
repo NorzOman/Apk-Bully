@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Java + essential tools
 RUN apt-get update && apt-get install -y \
-    default-jre \
+    default-jre-headless \
     bash \
     coreutils \
     findutils \
@@ -18,8 +18,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy project files
-COPY main .
-COPY patterns.txt .
+COPY apkbully-exec .
+COPY apkbully-patterns.txt .
 
 # Download and install jadx 1.5.2
 RUN wget -q https://github.com/skylot/jadx/releases/download/v1.5.2/jadx-1.5.2.zip \
@@ -30,7 +30,7 @@ RUN wget -q https://github.com/skylot/jadx/releases/download/v1.5.2/jadx-1.5.2.z
     && chmod +x /opt/jadx-1.5.2/bin/jadx
 
 # Make main script executable (if it's a shell or Python script)
-RUN chmod +x ./main
+RUN chmod +x ./apkbully-exec
 
 # Run the main script when the container starts
-ENTRYPOINT ["./main"]
+ENTRYPOINT ["./apkbully-exec"]
